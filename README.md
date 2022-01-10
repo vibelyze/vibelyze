@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/img/logo/Logo-zwart.png" width="200px"></p>
+<p align="center"><img src=assets/img/logo/Logo-12.png" width="200px"></p>
 
 <p align="center">🎶 Music Analysis by the Effect Network Workforce 🎶</p>
 
