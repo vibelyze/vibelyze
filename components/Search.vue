@@ -50,12 +50,12 @@
       <br>
       <button type="submit" class="button is-primary mt-2 is-align-self-flex-end" @click="makeBatch">Submit Batch</button>
 
-      <div class="notification is-primary is-light" v-if="makeBatchSuccess">
+      <div class="notification is-primary is-light mt-5" style="font-size: 23px;" v-if="makeBatchSuccess">
         Transaction succesfuly submitted! Transaction ID: {{makeBatchSuccess.transaction_id}}
       </div>
 
       <a href="/results" v-if="makeBatchSuccess">
-        <button class="button is-primary is-outlined" >Results. Page</button>
+        <button class="button is-primary is-outlined" >Results page</button>
       </a>
     </div>
   </div>
@@ -68,13 +68,12 @@ export default Vue.extend({
   props: ['account', 'effectsdk', 'newcampaign'],
   data() {
     return {
-      // TODO:
       clientId: 'd6dd66c7d97349e1bf930eac35962903',
       clientSecret: 'da865f7bf82c4e6098836c5124800e52',
       token: null,
       currentTrack: null,
       tracks: [],
-      campaignId: null,
+      campaignId: 198,
       makeBatchSuccess: null,
     }
   },
