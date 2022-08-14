@@ -1,8 +1,5 @@
 <template>
   <div>
-    <div v-if="newcampaign">
-      Using the campaign: <a target="_blank" :href="'https://testnet.effect.network/campaigns/' + newcampaign.id">https://testnet.effect.network/campaigns/{{newcampaign.id}}</a>
-    </div>
     <h1 class="title mt-5" style="text-align:center;">
         Create your batch of songs
       </h1>
@@ -23,7 +20,7 @@
           <div class="mb-2">
               <label for="artist" class="form-label">by {{currentTrack.artists[0].name}}</label>
           </div>
-          <button class="button is-primary is-outlined mt-3" @click="addToBatch()">Add Song to Batch</button>
+          <button class="button is-primary is-outlined mt-3" @click="addToBatch()">Add Song</button>
       </div>
     </div>
 
@@ -46,12 +43,14 @@
         </tbody>
       </table>
 
-      <!-- <input class="input" style="width: 135px;" v-if="!newcampaign" v-model="campaignId" name="campaign-id" type="number" placeholder="Campaign ID"> -->
-      <br>
-      <button type="submit" class="button is-primary mt-2 is-align-self-flex-end" @click="makeBatch">Submit Batch</button>
+      Amount of people that analyze each song:
+      <input class="input" style="width: 135px;" v-model="repetitions" name="Repetitions" min="1" max="100" type="number" placeholder="Repetitions">
+      <span>Total cost: {{ parseFloat(campaign.info.reward * tracks.length * repetitions).toFixed(2) }} EFX</span>
+      <br><br>
+      <button type="submit" class="button is-primary mt-2 is-align-self-flex-end" @click="makeBatch">Submit Songs</button>
 
-      <div class="notification is-primary is-light mt-5" style="font-size: 23px;" v-if="makeBatchSuccess">
-        Transaction succesfuly submitted! Transaction ID: {{makeBatchSuccess.transaction_id}}
+      <div class="notification is-primary is-light mt-5" style="font-size: 23px;" v-if="batchId">
+        Your songs have been submitted! Check the results here: <nuxt-link :to="`/batch/${batchId}`">here</nuxt-link>
       </div>
 
       <a href="/results" v-if="makeBatchSuccess">
@@ -65,17 +64,23 @@
 import Vue from 'vue'
 
 export default Vue.extend({
-  props: ['account', 'effectsdk', 'newcampaign'],
+  props: ['account', 'effectsdk'],
   data() {
     return {
+      campaign: null,
       clientId: 'd6dd66c7d97349e1bf930eac35962903',
       clientSecret: 'da865f7bf82c4e6098836c5124800e52',
       token: null,
       currentTrack: null,
       tracks: [],
-      campaignId: 198,
+      campaignId: 19,
       makeBatchSuccess: null,
+      repetitions: 1,
+      batchId: null,
     }
+  },
+  mounted() {
+    this.getCampaign()
   },
   components: {},
   methods: {
@@ -115,7 +120,7 @@ export default Vue.extend({
     },
     async makeBatch() {
       try {
-        let campaignId = this.newcampaign ? this.newcampaign.id : this.campaignId
+        let campaignId = this.campaignId
         console.log(`Campaign 🚒:\n${campaignId}`)
         
         const embeds = []
@@ -128,8 +133,7 @@ export default Vue.extend({
         const content = {
           'tasks': embeds
         }
-        const repetitions = '1'
-        const batchResponse = await this.effectsdk.force.createBatch(parseInt(campaignId), content, repetitions)
+        const batchResponse = await this.effectsdk.force.createBatch(parseInt(campaignId), content, this.repetitions, 'efxtaskproxy')
         
         // await this.effectsdk.force.waitTransaction(batchResponse.transaction.transaction_id)
         
@@ -137,12 +141,16 @@ export default Vue.extend({
         const campaign = await this.effectsdk.force.getCampaign(campaignId)
         batchResponse.campaign = campaign;
         console.log('add this to store', batchResponse)
+        this.batchId = await this.effectsdk.force.getBatchId(batchResponse.id, campaignId);
         this.$store.dispatch('batch/addBatch', batchResponse)
         this.makeBatchSuccess = batchResponse.transaction;
       } catch (error) {
           alert('Something went wrong. See console for error message')
           console.error(error)
       }
+    },
+    async getCampaign () {
+      this.campaign = await this.effectsdk.force.getCampaign(this.campaignId)
     }
   }
 })

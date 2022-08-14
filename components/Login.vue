@@ -17,7 +17,7 @@ export default Vue.extend({
   data() {
     return {
       client: null,
-      campaignid: null,
+      campaignid: 19,
       batchidentification: null,
       connectAccount: { 
         providerName: null, 
@@ -51,7 +51,7 @@ export default Vue.extend({
     generateClient() {
         console.log('Creating SDK...')
         try {
-            this.client = new effectsdk.EffectClient('jungle')
+            this.client = new effectsdk.EffectClient('mainnet')
             console.log(this.client)
         } catch (error) {
             console.error(error)
@@ -66,8 +66,8 @@ export default Vue.extend({
             const transport = new AnchorLinkBrowserTransport()
             const alink = new AnchorLink({
                 transport,
-                chainId: '2a02a0053e5a8cf73a56ba0fda11e4d92e0238a4a2aa74fccf46d5a910746840',
-                rpc: 'https://jungle3.greymass.com'
+                chainId: this.client.config.eosChainId,
+                rpc: this.client.config.eosNodeUrl,
             })
             // Perform the login, which returns the users identity
             const identity = await alink.login('hackathon-boilerplate')

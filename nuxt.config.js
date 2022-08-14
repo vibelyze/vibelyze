@@ -3,7 +3,7 @@ export default {
   target: 'static',
   ssr: false,
   router: {
-    base: '/vibelyze/'
+    base: '/'
   },
   generate: {
     fallback: true,

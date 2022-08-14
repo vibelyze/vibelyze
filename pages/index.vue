@@ -9,12 +9,13 @@
           </p>
         </div>
       <login v-if="!account" @account="setAccount"></login>
-      <search :effectsdk="effectsdk" :account="account" :newcampaign="newcampaign" v-if="account"></search>
+      <search :effectsdk="effectsdk" :account="account" v-if="account"></search>
     </div>
 
     <div class="mb-6 has-text-centered" v-if="account">
       <p class="has-text-success" style="font-size: 18px;">Connected Effect Account: {{account.accountName}}</p>
     </div>
+    <p class="has-text-centered is-size-5">Powered by <a target="_blank" href="https://effect.network">Effect Network</a></p>
   </div>
 </template>
 
@@ -30,7 +31,6 @@ export default Vue.extend({
       account: null,
       effectsdk: null,
       search: false,
-      newcampaign: null
     }
   },
   components: { Login, Search, CreateCampaign },

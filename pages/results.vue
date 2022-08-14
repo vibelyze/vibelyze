@@ -1,10 +1,10 @@
 <template>
-  <div>
-    <div class="container mt-6">
+  <div class="mb-6">
+    <div class="container my-6">
       <div class="has-text-centered pt-6">
         <img src="../assets/img/logo/Logo-wit.png" style="width: 200px">
-        <h1 class="title mb-3">Batch Results</h1>
-        <p class="mb-6">Download the results of the batches you've created with VIBELYZE</p>
+        <h1 class="title mb-3">Orders</h1>
+        <p class="mb-6">See here an overview of your orders</p>
       </div>
       <div class="box block" v-for="batch, index in batches" :key="batch.id + '-' +batch.campaign_id">
         <article class="media" v-if="batch && batch.campaign">
@@ -16,20 +16,19 @@
             <div class="media-content pl-2">
               <div class="content">
                 <p>
-                  <small>Campaign #{{batch.campaign.id}} - {{batch.campaign.info.title}}</small> 
-                  <br>
-                  <small>Batch #{{batch.id}}</small>
+                  <small>Order #{{batch.id}}</small>
                   <br>
                   <small>Tasks: {{batch.leaves.length}}</small>
                 </p>
               </div>
             </div>
             <div>
-              <button class="button is-primary mt-4" @click="downloadTaskResults(index)">Download Results</button>
+              <nuxt-link :to="`/batch/${batch.id}`"><button class="button is-primary mt-4">Details ></button></nuxt-link>
             </div>
           </article>
       </div>
     </div>
+    <p class="has-text-centered is-size-5">Powered by <a target="_blank" href="https://effect.network">Effect Network</a></p>
   </div>
 </template>
 
@@ -61,7 +60,7 @@ export default {
     generateClient() {
         console.log('Creating SDK...')
         try {
-            this.client = new effectsdk.EffectClient('jungle')
+            this.client = new effectsdk.EffectClient('mainnet')
             console.log(this.client)
         } catch (error) {
             console.error(error)
@@ -127,41 +126,6 @@ export default {
       } catch (error) {
         console.error(error)
       }
-    },
-    async prepareResults (x) {
-      const sub = {
-        data: null
-      }
-      sub.data = JSON.parse(x.data)
-
-      // add answers as seperate columns
-      for (const result of Object.keys(sub.data)) {
-        x[result] = sub.data[result]
-      }
-
-      // add placeholders
-      const taskIndex = await this.client.force.getTaskIndexFromLeaf(this.batch.campaign_id, this.batch.id, x.leaf_hash, this.batch.tasks)
-      const task = this.batch.tasks[taskIndex]
-      x.placeholders = JSON.stringify(task)
-
-      for (const result of Object.keys(task)) {
-        x[result] = task[result]
-      }
-
-      // remove unnecassary keys for csv
-      delete x.content
-      delete x.batch_id
-      delete x.id
-      delete x.leaf_hash
-
-      // put these attributes first
-      const columnOrder = {
-        link_id: null,
-        account_id: null
-      }
-      x = Object.assign(columnOrder, x)
-
-      return x
     }
   }
 
