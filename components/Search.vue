@@ -1,5 +1,10 @@
 <template>
   <div>
+  <article class="message is-danger" v-if="error">
+    <div class="message-body">
+      {{error}}
+    </div>
+  </article>
     <h1 class="title mt-5" style="text-align:center;">
         Create your batch of songs
       </h1>
@@ -47,7 +52,7 @@
       <input class="input" style="width: 135px;" v-model="repetitions" name="Repetitions" min="1" max="100" type="number" placeholder="Repetitions">
       <span>Total cost: {{ parseFloat(campaign.info.reward * tracks.length * repetitions).toFixed(2) }} EFX</span>
       <br><br>
-      <button type="submit" class="button is-primary mt-2 is-align-self-flex-end" @click="makeBatch">Submit Songs</button>
+      <button :class="{'is-loading': loading}" type="submit" class="button is-primary mt-2 is-align-self-flex-end" @click="makeBatch">Submit Songs</button>
 
       <div class="notification is-primary is-light mt-5" style="font-size: 23px;" v-if="batchId">
         Your songs have been submitted! Check the results here: <nuxt-link :to="`/batch/${batchId}`">here</nuxt-link>
@@ -77,6 +82,8 @@ export default Vue.extend({
       makeBatchSuccess: null,
       repetitions: 1,
       batchId: null,
+      loading: false,
+      error: null,
     }
   },
   mounted() {
@@ -105,7 +112,7 @@ export default Vue.extend({
       return data.access_token;
     },
     async getTracks (token, filter) {
-      const limit = 1;
+      const limit = 10;
       const result = await fetch(`https://api.spotify.com/v1/search?type=track&limit=${limit}&q=${filter}`, {
           method: 'GET',
           headers: { 'Authorization' : 'Bearer ' + this.token}
@@ -120,6 +127,8 @@ export default Vue.extend({
     },
     async makeBatch() {
       try {
+        this.error = null;
+        this.loading = true;
         let campaignId = this.campaignId
         console.log(`Campaign 🚒:\n${campaignId}`)
         
@@ -144,8 +153,10 @@ export default Vue.extend({
         this.batchId = await this.effectsdk.force.getBatchId(batchResponse.id, campaignId);
         this.$store.dispatch('batch/addBatch', batchResponse)
         this.makeBatchSuccess = batchResponse.transaction;
+        this.loading = false;
       } catch (error) {
-          alert('Something went wrong. See console for error message')
+          this.loading = false;
+          this.error = error;
           console.error(error)
       }
     },
