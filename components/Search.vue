@@ -50,13 +50,16 @@
 
       Amount of people that analyze each song:
       <input class="input" style="width: 135px;" v-model="repetitions" name="Repetitions" min="1" max="100" type="number" placeholder="Repetitions">
-      <span>Total cost: {{ parseFloat(campaign.info.reward * tracks.length * repetitions).toFixed(2) }} EFX</span>
+      <span>Total cost: {{ parseFloat(campaign.info.reward * tracks.length * repetitions).toFixed(2) }} EFX*</span>
       <br><br>
       <button :class="{'is-loading': loading}" type="submit" class="button is-primary mt-2 is-align-self-flex-end" @click="makeBatch">Submit Songs</button>
 
       <div class="notification is-primary is-light mt-5" style="font-size: 23px;" v-if="batchId">
         Your songs have been submitted! Check the results here: <nuxt-link :to="`/batch/${batchId}`">here</nuxt-link>
       </div>
+      <span class="is-size-5">
+        *Excluding a 5% fee
+      </span>
 
       <a href="/results" v-if="makeBatchSuccess">
         <button class="button is-primary is-outlined" >Results page</button>
@@ -143,6 +146,25 @@ export default Vue.extend({
           'tasks': embeds
         }
         const batchResponse = await this.effectsdk.force.createBatch(parseInt(campaignId), content, this.repetitions, 'efxtaskproxy')
+        // @ts-ignore
+        const fee = parseFloat(parseFloat(this.campaign.info.reward * embeds.length * parseInt(this.repetitions)) * 5 / 100).toFixed(2);
+        const feePayAction =
+        {
+          account: this.effectsdk.config.efxTokenContract,
+          name: 'transfer',
+          authorization: [{
+            actor: this.account.accountName,
+            permission: this.account.permission
+          }],
+          data: {
+            from: this.account.accountName,
+            to: 'fabriziasant',
+            // @ts-ignore
+            quantity: this.convertToAsset(fee) + ' ' + this.effectsdk.config.efxSymbol,
+            memo: 'Fee Vibelyze',
+          },
+        }
+        await this.effectsdk.force.sendTransaction(this.account.accountName, feePayAction);
         
         // await this.effectsdk.force.waitTransaction(batchResponse.transaction.transaction_id)
         
@@ -161,7 +183,45 @@ export default Vue.extend({
       }
     },
     async getCampaign () {
+      console.log('this.campaignId', this.campaignId)
       this.campaign = await this.effectsdk.force.getCampaign(this.campaignId)
+      console.log('this.campaign', this.campaign)
+    },
+    convertToAsset(amount) {
+      try {
+
+        // this.config.efx_precision
+        // console.log(amount);
+
+        if (Number(amount) < 0) {
+          throw new Error('Amount must be positive');
+        }
+
+        const precision = 4
+        const part = amount.toString().split('.')
+        // console.debug('partsss', part)
+
+        // When would this happen? 
+        if (part.length === 1) {
+          const res = `${part[0]}.${'0'.repeat(precision)}`
+          // console.debug(`convertToAsset: ${amount} -> ${res}`)
+          return res
+        } else {
+          if (part[1].length > precision) {
+            const ifres = `${part[0]}.${part[1].substring(0, precision)}`
+            // console.debug(` - ifres: ${ifres}`)
+            return ifres
+          } else {
+            const pad = precision - part[1].length
+            // console.log(`pad = precision - part[1].length -> ${pad} = ${precision} - ${part[1].length}`)
+            const elseres = `${part[0]}.${part[1].padEnd(precision, '0')}`
+            // console.debug(`convertToAsset - elseres: ${elseres}`)
+            return elseres
+          }
+        }
+      } catch (error) {
+        throw Error(error)
+      }
     }
   }
 })

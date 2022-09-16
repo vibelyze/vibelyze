@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="connect-buttons" v-if="!accountConnected" class="buttons is-justify-content-center is-flex">
-      <button class="button is-primary" @click="login()" id="btn-login" style="background-color: #f6851b">Connect with Metamask</button>
+      <!-- <button class="button is-primary" @click="login()" id="btn-login" style="background-color: #f6851b">Connect with Metamask</button> -->
       <button class="button is-link" @click="loginEOS()" id="btn-login-eos" style="background-color: #3750A2">Connect with Anchor</button>
     </div>
   </div>
@@ -51,7 +51,9 @@ export default Vue.extend({
     generateClient() {
         console.log('Creating SDK...')
         try {
-            this.client = new effectsdk.EffectClient('mainnet')
+            this.client = new effectsdk.EffectClient('mainnet', {
+                ipfsCache: false
+            })
             console.log(this.client)
         } catch (error) {
             console.error(error)
