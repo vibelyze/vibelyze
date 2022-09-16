@@ -5,7 +5,7 @@
         <div class="has-text-centered">
           <p v-if="!account" class="mb-6">
             <span class="title">Get started with VIBELYZE!</span><br>
-            Vibelyze is an app that investigates music nuance. Vibelyze obtains information suitable for training your music-related machine algorithm or designing your DJ setlist by handing songs to thousands of Effect workers.
+            Vibelyze is an app that investigates music nuance. Vibelyze obtains information suitable for training your music-related machine algorithm, designing your DJ setlist or just to promote your music by handing songs to thousands of listening ears.
           </p>
         </div>
       <login v-if="!account" @account="setAccount"></login>
